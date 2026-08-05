@@ -21,7 +21,7 @@ export default class ScoreUI {
       strokeThickness: 8,
     }).setOrigin(0.5).setDepth(100);
 
-    this.caption = scene.add.text(scene.scale.width / 2, 148, 'очков', {
+    this.caption = scene.add.text(scene.scale.width / 2, 148, 'общих нажатий', {
       fontFamily: 'Inter, Segoe UI, sans-serif',
       fontSize: '23px',
       color: '#6b899c',
