@@ -19,16 +19,28 @@ export default class ScoreApi {
   }
 
   subscribe(onScore, onConnectionChange) {
-    const eventSource = new EventSource(`${this.baseUrl}/api/events`);
-    eventSource.addEventListener('open', () => onConnectionChange?.(true));
-    eventSource.addEventListener('error', () => onConnectionChange?.(false));
-    eventSource.addEventListener('score', (event) => {
-      const payload = JSON.parse(event.data);
-      if (Number.isSafeInteger(payload.score) && payload.score >= 0) {
-        onScore(payload.score);
+    let active = true;
+    let timer = null;
+
+    const poll = async () => {
+      try {
+        const { score } = await this.getScore();
+        if (active && Number.isSafeInteger(score) && score >= 0) {
+          onScore(score);
+          onConnectionChange?.(true);
+        }
+      } catch {
+        if (active) onConnectionChange?.(false);
+      } finally {
+        if (active) timer = window.setTimeout(poll, 1000);
       }
-    });
-    return () => eventSource.close();
+    };
+
+    timer = window.setTimeout(poll, 1000);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }
 
   async request(path, options) {
